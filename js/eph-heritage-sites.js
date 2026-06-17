@@ -742,14 +742,14 @@ function renderHistoricalImagesInPanel(qid) {
   function buildImageBlock(imgObj) {
     // KUNCI PERUBAHAN: Memasang border-top langsung di div pembungkus.
     // padding-top: 20px diberikan agar ada jarak nafas antara garis dan foto.
-    let block = '<div class="arsip-block" style="border-top: 1px solid #eaa; padding-top: 20px; overflow: hidden;">';
+    let block = '<div class="arsip-block" style="overflow: hidden;">';
     
     // Cetak fotonya terlebih dahulu
     block += generateFigure(imgObj.file);
     
     // Cetak teks keterangannya di bawah foto (jika ada)
     if (imgObj.caption) {
-      block += `<div class="article main-text" style="padding-top: 0px;"><p>${imgObj.caption}</p></div>`;
+      block += `<div class="article main-text"><p>${imgObj.caption}</p></div>`;
     }
     
     // Tutup bungkus div
@@ -773,7 +773,7 @@ function renderHistoricalImagesInPanel(qid) {
   // Finalisasi penempelan ke layar
   if (html !== '') {
     // KUNCI PERUBAHAN: H2 "Arsip & Foto Lingkungan" sudah dihapus
-    container.innerHTML = html;
+container.innerHTML = '<h2>Galeri</h2>' + html;
     container.classList.remove('loading');
   } else {
     container.innerHTML = '';
