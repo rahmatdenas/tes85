@@ -136,7 +136,8 @@
 
   /* ---------- Panel detail ---------- */
   #details,
-  #about {
+  #about,
+  #kontrib {
     padding: 16px;
   }
 
