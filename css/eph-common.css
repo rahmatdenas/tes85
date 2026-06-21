@@ -458,7 +458,7 @@ font-family: "Open Sans", sans-serif;
   border: 2px solid rgba(0,0,0,0.2);
 }
 
-.leaflet-control-locate {
-  margin-bottom: 50px !important; /* Silakan ubah angka 40px ini sesuai selera Anda */
-  margin-right: 10px !important;  /* Opsional: memberi sedikit jarak dari tepi kanan layarnya juga */
+.leaflet-bottom.leaflet-right {
+    margin-bottom: 50px !important; /* Jarak dari bawah layar */
+    margin-right: 10px !important;  /* Jarak dari kanan layar */
 }
