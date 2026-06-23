@@ -88,8 +88,10 @@ function populateProvinceTypesData() {
         record.title = '[ERROR: No title]';
       }
 
-      let provQid = result.provinsiQid.value;
-      let provLabel = result.provinsiLabel.value;
+      // === KUNCI PENGAMAN BUMPER PROVINSI ===
+      // Jika bangunan tidak punya data provinsi di Wikidata, masukkan ke "Provinsi Tidak Tercatat"
+      let provQid = result.provinsiQid ? result.provinsiQid.value : 'Q_UNKNOWN';
+      let provLabel = result.provinsiLabel ? result.provinsiLabel.value : 'Wilayah Tidak Tercatat';
 
       if (!(provQid in ProvinceIndex)) {
         ProvinceIndex[provQid] = new ProvinceIndexEntry();
