@@ -23,8 +23,9 @@ var Cluster;
 var BootstrapDataIsLoaded = false;  
 var PrimaryDataIsLoaded   = false;  
 
-// === FITUR BARU: Buku Tamu Pencatat Koneksi Aktif ===
-var activeXhrs = [];
+// === PENANDA STATUS BARU ===
+var isFetching            = false; // Menandai apakah satpam sedang mencari data
+var activeXhrs            = [];
 
 window.addEventListener('load', init);
 
@@ -69,23 +70,27 @@ function setupLandingForm() {
     
     resetApp();
     
+    // === MULAI LOADING ===
+    isFetching = true; 
     window.location.hash = '';
-    displayPanelContent('loading');
+    
+    // Langsung buka Daftar, jangan buka layar Loading lama!
+    displayPanelContent('index'); 
     loadPrimaryData();
   });
 }
 
 function resetApp() {
-  // === FITUR BARU: Sang Pembunuh Koneksi (XHR Abort) ===
   if (activeXhrs.length > 0) {
     activeXhrs.forEach(xhr => xhr.abort());
-    activeXhrs = []; // Kosongkan daftar setelah dibunuh
+    activeXhrs = []; 
   }
 
   Records = {};
   ProvinceIndex = {};
   BootstrapDataIsLoaded = false;
   PrimaryDataIsLoaded = false;
+  isFetching = false; // Kembalikan status ke Menganggur
   
   currentFilteredRecords = [];
   currentRenderIndex = 0;
@@ -142,20 +147,17 @@ function queryWdqsThenProcess(query, processEachResult, postprocessCallback) {
   let promise = new Promise((resolve, reject) => {
     let xhr = new XMLHttpRequest();
     
-    // Daftarkan koneksi ini ke Buku Tamu
     activeXhrs.push(xhr);
 
     xhr.onreadystatechange = function() {
       if (xhr.readyState !== xhr.DONE) return;
 
-      // Hapus dari Buku Tamu karena tugasnya sudah selesai
       let index = activeXhrs.indexOf(xhr);
       if (index > -1) activeXhrs.splice(index, 1);
 
       if (xhr.status === 200) {
         resolve(JSON.parse(xhr.responseText));
       } else if (xhr.status === 0) {
-        // Status 0 berarti koneksi sengaja dibunuh (aborted) atau terputus
         reject('ABORTED');
       } else {
         reject(xhr.status);
@@ -178,63 +180,68 @@ function queryWdqsThenProcess(query, processEachResult, postprocessCallback) {
 
 function enableApp() {
   PrimaryDataIsLoaded = true;
+  isFetching = false; // Tarikan selesai!
   processHashChange();
 }
 
 function processHashChange() {
   let fragment = window.location.hash.replace('#', '');
 
-  // Tarik panel ke atas secara otomatis di Mobile
   if (typeof window.setMobilePanelExpanded === 'function') {
     window.setMobilePanelExpanded(true);
   }
 
-  // 1. Halaman Beranda (Landing)
   if (fragment === 'landing') {
-    resetApp(); // Pastikan memori bersih setiap kali kembali ke Beranda
+    resetApp(); 
     document.title = 'Mulai Eksplorasi – ' + BASE_TITLE;
     displayPanelContent('landing');
   }
-  // 2. Halaman Tentang
   else if (fragment === 'about') {
     document.title = 'About – ' + BASE_TITLE;
     displayPanelContent('about');
   }
-  // 3. Halaman Kontributor
   else if (fragment === 'kontrib') {
     document.title = 'Jadi Kontributor – ' + BASE_TITLE;
     displayPanelContent('kontrib'); 
   }
-  // 4. Halaman Daftar (Index) & Detail Bangunan
   else {
-    // === KUNCI PERBAIKAN: CEK APAKAH DATA SUDAH DITARIK? ===
+    // === LOGIKA UX CERDAS UNTUK HALAMAN DAFTAR ===
     if (!PrimaryDataIsLoaded) {
-      
       if (fragment === '') {
-        // Jika pengguna menekan tab "Daftar" tapi belum ada data
-        document.title = 'Daftar Kosong – ' + BASE_TITLE;
-        
+        document.title = 'Daftar – ' + BASE_TITLE;
+        displayPanelContent('index');
+
         let indexList = document.getElementById('index-list');
         if (indexList) {
-          // Suntikkan pesan Empty State yang cantik
-          indexList.innerHTML = `
-            <div style="padding: 40px 20px; text-align: center; line-height: 1.6;">
-              <h3 style="margin-bottom: 10px; color: #333;">Data Belum Ditarik</h3>
-              <p style="color: #666; margin-bottom: 25px;">Anda belum melakukan pencarian. Silakan pilih jenis entitas dan mulai eksplorasi Anda di halaman Beranda.</p>
-              <a href="#landing" style="background-color: #d32f2f; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">Kembali ke Beranda</a>
-            </div>
-          `;
+          
+          if (isFetching) {
+            // Skenario 1: Tombol Cari sudah ditekan, sedang berjuang narik data
+            indexList.innerHTML = `
+              <div style="padding: 40px 20px; text-align: center; line-height: 1.6;">
+                <h3 style="margin-bottom: 10px; color: #333;">Sedang Menarik Data...</h3>
+                <p style="color: #666; margin-bottom: 25px;">Mohon tunggu sebentar, satpam Wikidata sedang mencari dan menyusun daftar entitas untuk Anda.</p>
+                <div class="loader" style="margin: 0 auto; width: 40px; height: 40px; border-width: 4px;"></div>
+              </div>
+            `;
+          } else {
+            // Skenario 2: Web baru dibuka, pengguna iseng langsung klik tab "Daftar"
+            indexList.innerHTML = `
+              <div style="padding: 40px 20px; text-align: center; line-height: 1.6;">
+                <h3 style="margin-bottom: 10px; color: #333;">Data Belum Ditarik</h3>
+                <p style="color: #666; margin-bottom: 25px;">Anda belum melakukan pencarian. Silakan kembali ke halaman Beranda untuk memilih entitas yang ingin dieksplorasi.</p>
+                <a href="#landing" style="background-color: #d32f2f; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">Kembali ke Beranda</a>
+              </div>
+            `;
+          }
+          
         }
-        displayPanelContent('index');
       } else {
-        // Jika pengguna iseng mengetik URL bangunan secara manual tapi belum narik data
-        // Lempar paksa kembali ke Landing!
+        // Jika iseng ngetik link spesifik (#Q123) tapi data belum ditarik
         window.location.hash = 'landing';
       }
-      
     } 
-    // === JIKA DATA SUDAH BERHASIL DITARIK ===
     else {
+      // Normal: Data sudah ditarik dan siap disajikan
       if (fragment === '' || !(fragment in Records)) {
         window.location.hash = '';  
         document.title = BASE_TITLE;
