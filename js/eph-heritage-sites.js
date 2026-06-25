@@ -97,15 +97,19 @@ function doPreProcessing() {
   processHashChange();
 }
 
-// === TAMBAHKAN FUNGSI DETEKTIF INI ===
+// === LETAKKAN DI BAGIAN ATAS JS BERSAMA VARIABEL LAIN ===
+var currentKategoriUtama = 'general'; 
+
+// === UBAH FUNGSI DETEKTIF MENJADI SEPERTI INI ===
 function tentukanKategoriKueri(inputTxt) {
-  // Jika input mengandung Surat Kabar (Q11032) atau Majalah (Q41298)
   if (inputTxt.includes('Q11032') || inputTxt.includes('Q41298')) return 'pers';
-  
-  // Jika input mengandung Kabupaten (Q3199141) atau Kota (Q3191695)
   if (inputTxt.includes('Q3199141') || inputTxt.includes('Q3191695')) return 'wilayah';
   
-  // Default untuk Masjid, Stasiun, Benteng, dsb.
+  // Daftar Q-ID Entitas Alam & Peristiwa
+  const kelompokAlam = ['Q8502', 'Q35509', 'Q23442', 'Q34038', 'Q23397', 'Q204324', 'Q159954', 'Q7944', 'Q179049'];
+  let isAlam = kelompokAlam.some(qid => inputTxt.includes(qid));
+  if (isAlam) return 'alam';
+  
   return 'general';
 }
 
@@ -113,11 +117,12 @@ function populateProvinceTypesData() {
   let inputTxt = document.getElementById('jenis-input').value.trim();
   let provInput = document.getElementById('provinsi-input').value;
   
-  // 1. Tentukan kategori berdasarkan input pengguna
-  let kategori = tentukanKategoriKueri(inputTxt);
+  // 1. Tentukan kategori dan simpan di ingatan global
+  currentKategoriUtama = tentukanKategoriKueri(inputTxt);
   
-  // 2. Ambil kueri dari Kamus berdasarkan kategorinya
-  let baseQuery = KUMPULAN_KUERI_0[kategori];
+  // 2. Ambil kueri dari Kamus. Jika 'alam', pinjam kueri 'general' (karena butuh P131+ juga)
+  let namaKueri = (currentKategoriUtama === 'alam') ? 'general' : currentKategoriUtama;
+  let baseQuery = KUMPULAN_KUERI_0[namaKueri];
   
   // 3. Suntikkan Dropdown Wilayah
   let wilayahClause = '';
@@ -707,22 +712,35 @@ function generateRecordDetails(qid) {
     }
   }
 
-  let teksJudul = isBersejarah ? 'Situs Bersejarah' : 'Informasi';
+let teksJudul = 'Informasi';
+  if (currentKategoriUtama === 'alam') {
+    teksJudul = 'Informasi Geografis';
+  } else if (currentKategoriUtama === 'pers') {
+    teksJudul = 'Informasi Publikasi';
+  } else {
+    let isBersejarah = false;
+    if (record.rawTahunBerdiri) {
+      let tahunBangunan = parseInt(record.rawTahunBerdiri.substring(0, 4));
+      if (tahunBangunan <= (new Date().getFullYear() - 50)) isBersejarah = true;
+    }
+    teksJudul = isBersejarah ? 'Situs Bersejarah' : 'Informasi Bangunan';
+  }
 
   let designationsHtml = `<h2 style="margin-top:10px">${teksJudul} ${tautanSuntingRingkasan}</h2>`;
   designationsHtml += '<ul class="designations">';
 
-  let isFirstDesignation = true; 
-
+  // 2. UBAH LOGIKA INFO TAHUN DI DALAM LOOPING PROVINSI
   Object.keys(record.designations).forEach(provQid => {
-
     let namaProvinsi = record.designations[provQid];
     let infoTahunHtml = '';
     
-    if (record.tahunBerdiri) {
-      infoTahunHtml = `<p>Didirikan: ${record.tahunBerdiri}</p>`;
-    } else {
-      infoTahunHtml = `<p>Didirikan: <span style="font-style: italic; color: #888;">Data belum tersedia</span></p>`;
+    // HANYA cetak "Didirikan" jika BUKAN alam dan BUKAN wilayah
+    if (currentKategoriUtama !== 'alam' && currentKategoriUtama !== 'wilayah') {
+      if (record.tahunBerdiri) {
+        infoTahunHtml = `<p>Didirikan: ${record.tahunBerdiri}</p>`;
+      } else {
+        infoTahunHtml = `<p>Didirikan: <span style="font-style: italic; color: #888;">Data belum tersedia</span></p>`;
+      }
     }
 
     let induk = namaProvinsi; 
