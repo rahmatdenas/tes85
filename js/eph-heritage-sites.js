@@ -744,13 +744,12 @@ function generateRecordDetails(qid) {
   let designationsHtml = `<h2 style="margin-top:10px">${teksJudul} ${tautanSuntingRingkasan}</h2>`;
   designationsHtml += '<ul class="designations">';
 
-  // 1. Gabungkan semua provinsi menjadi satu teks (misal: "Jawa Tengah, Jawa Timur")
-  // Berlaku untuk alam dan general
-let arrayProvinsi = Object.values(record.designations).filter(p => p !== 'Tidak dalam Provinsi');
+// 1. Gabungkan semua provinsi menjadi satu teks
+  let arrayProvinsi = Object.values(record.designations).filter(p => p !== 'Tidak dalam Provinsi');
   
-  // Jika setelah disaring ternyata kosong, kembalikan teksnya agar tidak blank
+  // Jika setelah disaring ternyata kosong, jadikan 'Indonesia' sebagai lokasi default
   if (arrayProvinsi.length === 0) {
-    arrayProvinsi.push('Tidak dalam Provinsi');
+    arrayProvinsi.push('Indonesia');
   }
   
   let teksDaftarProvinsi = arrayProvinsi.join(', '); 
