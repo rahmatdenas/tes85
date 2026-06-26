@@ -721,7 +721,7 @@ function generateRecordDetails(qid) {
   let wikiUrlUtama = `https://www.wikidata.org/wiki/${qid}`;
   let tautanSuntingRingkasan = `<a href="${wikiUrlUtama}" target="_blank" class="sunting-link" title="Sunting data di Wikidata" aria-label="Sunting data di Wikidata"></a>`;
 
-  // === PERBAIKAN: LOGIKA JUDUL YANG LEBIH RAPI DAN BERSIH ===
+// === PERBAIKAN: LOGIKA JUDUL YANG LEBIH RAPI DAN BERSIH ===
   let teksJudul = 'Informasi';
   if (currentKategoriUtama === 'alam') {
     teksJudul = 'Informasi Geografis';
@@ -739,57 +739,52 @@ function generateRecordDetails(qid) {
   let designationsHtml = `<h2 style="margin-top:10px">${teksJudul} ${tautanSuntingRingkasan}</h2>`;
   designationsHtml += '<ul class="designations">';
 
-  // === PERBAIKAN: MENGEMBALIKAN VARIABEL YANG HILANG ===
-  let isFirstDesignation = true; 
+  // 1. Gabungkan semua provinsi menjadi satu teks (misal: "Jawa Tengah, Jawa Timur")
+  // Berlaku untuk alam dan general
+  let arrayProvinsi = Object.values(record.designations);
+  let teksDaftarProvinsi = arrayProvinsi.join(', '); 
 
-  Object.keys(record.designations).forEach(provQid => {
-    let namaProvinsi = record.designations[provQid];
-    let infoTahunHtml = '';
-    
-    // HANYA cetak "Didirikan" jika BUKAN alam dan BUKAN wilayah
-if (currentKategoriUtama !== 'alam') {
-      if (record.tahunBerdiri) {
-        infoTahunHtml = `<p>Didirikan: ${record.tahunBerdiri}</p>`;
-      } else {
-        infoTahunHtml = `<p>Didirikan: <span style="font-style: italic; color: #888;">Data belum tersedia</span></p>`;
-      }
-    }
+  // 2. Siapkan Info Lokasi
+  let spesifik = record.lokasiSpesifik; 
+  let namaLokasi = teksDaftarProvinsi; 
 
-    let induk = namaProvinsi; 
-    let spesifik = record.lokasiSpesifik; 
-    let namaLokasi = induk; 
+  // Hindari duplikasi kata jika lokasi spesifiknya sama dengan nama provinsi
+  if (spesifik && !arrayProvinsi.map(p => p.toLowerCase()).includes(spesifik.toLowerCase())) {
+    namaLokasi = `${spesifik}, ${teksDaftarProvinsi}`; 
+  }
 
-    if (spesifik && spesifik.toLowerCase() !== induk.toLowerCase()) {
-      namaLokasi = `${spesifik}, ${induk}`; 
-    }
+  let infoLokasiHtml = '';
+  if (record.lat && record.lon) {
+    let mapsUrl = `https://www.google.com/maps?q=${record.lat},${record.lon}`;
+    infoLokasiHtml = `<p class="koordinat-link">Terletak di <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" title="Buka di Google Maps">${namaLokasi}</a></p>`;
+  } else {
+    infoLokasiHtml = `<p class="koordinat-link">Terletak di: ${namaLokasi}</p>`;
+  }
 
-    let infoLokasiHtml = '';
-
-    if (record.lat && record.lon) {
-      let mapsUrl = `https://www.google.com/maps?q=${record.lat},${record.lon}`;
-      infoLokasiHtml = `<p class="koordinat-link">Terletak di <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" title="Buka di Google Maps">${namaLokasi}</a></p>`;
+  // 3. Siapkan Info Tahun Didirikan (Hanya untuk kategori non-alam)
+  let infoTahunHtml = '';
+  if (currentKategoriUtama !== 'alam') {
+    if (record.tahunBerdiri) {
+      infoTahunHtml = `<p>Didirikan: ${record.tahunBerdiri}</p>`;
     } else {
-      infoLokasiHtml = `<p class="koordinat-link">Terletak di: ${namaLokasi}</p>`;
+      infoTahunHtml = `<p>Didirikan: <span style="font-style: italic; color: #888;">Data belum tersedia</span></p>`;
     }
-    
-    let eventsHtmlPlaceholder = '';
-    if (isFirstDesignation) {
-      eventsHtmlPlaceholder = `
-        <div id="events-container-${qid}" class="loading" style="margin-top: 8px; min-height: 24px;">
-          <div class="loader" style="width: 20px; height: 20px; border-width: 2px; margin: 0;"></div>
-        </div>`;
-      isFirstDesignation = false;
-    }
+  }
 
-    designationsHtml +=
-      '<li>' +
-        infoLokasiHtml + 
-        infoTahunHtml +
-        eventsHtmlPlaceholder + 
-      '</li>';
-        
-  });
-    
+  // 4. Siapkan Wadah Events (Hanya dibuat 1 kali)
+  let eventsHtmlPlaceholder = `
+    <div id="events-container-${qid}" class="loading" style="margin-top: 8px; min-height: 24px;">
+      <div class="loader" style="width: 20px; height: 20px; border-width: 2px; margin: 0;"></div>
+    </div>`;
+
+  // 5. Rakit semua info ke dalam SATU baris <li> saja
+  designationsHtml +=
+    '<li>' +
+      infoLokasiHtml + 
+      infoTahunHtml +
+      eventsHtmlPlaceholder + 
+    '</li>';
+      
   designationsHtml += '</ul>';
 
   let arsipHtml = `<div id="arsip-container-${qid}" class="loading"><div class="loader" style="width: 20px; height: 20px; border-width: 2px; margin: 0;"></div></div>`;
