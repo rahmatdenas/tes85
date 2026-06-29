@@ -547,10 +547,20 @@ const labelKamus = {
     subjekList: 'Subjek utama', kolektorList: 'Koleksi dari', pemredList: 'Pimpinan redaksi',
     pendiriList: 'Pendiri', penerbit: 'Penerbit', bahanList: 'Bahan/Komposisi',
     caraList: 'Cara pembuatan', penutur: 'Jumlah penutur', tglWafat: 'Tanggal wafat',
-    pekerjaanList: 'Pekerjaan', pegunungan: 'Bagian dari pegunungan', korban: 'Korban jiwa'
+    pekerjaanList: 'Pekerjaan', pegunungan: 'Bagian dari pegunungan', korban: 'Korban jiwa',
+    agamaList: 'Agama', bagianDari: 'Bagian dari'
   };
 
-  if (record.dynamicProps && Object.keys(record.dynamicProps).length > 0) {
+  let urlWikibooks = null;
+
+if (record.dynamicProps && Object.keys(record.dynamicProps).length > 0) {
+    
+    // CEGAT WIKIBOOKS: Simpan ke variabel lalu hapus dari antrean agar tidak diproses looping
+    if (record.dynamicProps.wikibooks) {
+      urlWikibooks = record.dynamicProps.wikibooks;
+      delete record.dynamicProps.wikibooks;
+    }
+
     for (let key in record.dynamicProps) {
       let rawValue = record.dynamicProps[key];
       let formattedValue = rawValue;
@@ -567,14 +577,12 @@ const labelKamus = {
         formattedValue = tahun !== 'null' ? `${nama} (sejak ${tahun})` : nama;
       }
       else if (key === 'luas') {
-        // Pecah Luas: Angka | Satuan | Sahih/Keterangan
         let [angka, satuan, bagian] = rawValue.split('|');
         let angkaRapi = parseFloat(angka).toLocaleString('id-ID');
         let teksLuas = satuan ? `${angkaRapi} ${satuan}` : angkaRapi;
         formattedValue = bagian ? `${teksLuas} (untuk ${bagian})` : teksLuas;
       }
       else if (key === 'jumlahKoleksi') {
-        // Pecah Koleksi: Angka | Satuan
         let [angka, satuan] = rawValue.split('|');
         let angkaRapi = parseInt(angka).toLocaleString('id-ID');
         formattedValue = satuan ? `${angkaRapi} ${satuan}` : angkaRapi;
@@ -586,27 +594,34 @@ const labelKamus = {
         formattedValue = `<a href="${rawValue}" target="_blank" rel="noopener noreferrer" style="word-break: break-all;">Kunjungi Situs Web</a>`;
       }
       else if (key === 'tglTemu' || key === 'tglWafat') {
-        // Pecah Waktu: String Waktu | Presisi (lalu serahkan pada formatWikidataDate)
         let [waktu, presisi] = rawValue.split('|');
         formattedValue = formatWikidataDate(waktu, presisi);
       }
-      
-// Aturan Khusus Hidangan (Bahan & Cara huruf kecil semua)
-      if (key === 'bahanList' || key === 'caraList') {
+      else if (key === 'bahanList' || key === 'caraList') {
         formattedValue = formattedValue.toLowerCase();
       }
-      
-      // Aturan Khusus Bahasa (Hapus awalan "bahasa " yang berulang)
-      if (key === 'bahasaList') {
-        // Regex \b (word boundary) memastikan hanya kata "bahasa" utuh yang dihapus
-        // gi (global, case-insensitive) memastikan semua awalan di daftar koma ikut terhapus
+      else if (key === 'bahasaList') {
         formattedValue = formattedValue.replace(/\bbahasa\s+/gi, '');
       }
 
-      // Kapitalisasi paksa telah dicabut, data tampil persis sesuai ejaan Wikidata
-
-      html += `<p>${titleLabel}: ${formattedValue}</p>`;
+      html += `<p><strong>${titleLabel}:</strong> ${formattedValue}</p>`;
     }
+  }
+
+  // ==========================================
+  // RENDER BLOK WIKIBOOKS KHUSUS
+  // ==========================================
+  if (urlWikibooks) {
+    // Format UI ini disamakan dengan gaya galeri/arsip
+    html += `
+      <h2 style="margin-top:20px; margin-bottom:10px;">Resep & Panduan</h2>
+      <p class="wikipedia-link" style="margin-bottom: 15px;">
+        <a href="${urlWikibooks}" target="_blank">
+          <img src="img/wikicommons_tiny_logo.png" alt="" />
+          <span>Lihat di Wikibuku</span>
+        </a>
+      </p>
+    `;
   }
 
   let tautanTambah = `<p><a href="${wikiBaseUrl}" target="_blank" class="sunting-linktambah" title="Tambahkan data di Wikidata" style="font-style: italic;">Lengkapi data di Wikidata!</a></p>`;
