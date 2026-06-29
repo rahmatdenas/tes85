@@ -229,6 +229,23 @@ function getSparqlQuery6(qid) {
       OPTIONAL { ?site wdt:P189 ?tempatTemuItem . ?tempatTemuItem rdfs:label ?tempatTemuLabel . FILTER(LANG(?tempatTemuLabel) = "id") }
     `;
   }
+
+  if (['Situs arkeologi'].includes(klaster)) {
+    selectClause += `(GROUP_CONCAT(DISTINCT ?agamaLabel; separator=", ") AS ?agamaList) `;
+    whereClause += `
+      OPTIONAL { ?site wdt:P140 ?agamaItem . ?agamaItem rdfs:label ?agamaLabel . FILTER(LANG(?agamaLabel) = "id") }
+    `;
+  }
+
+  // ==========================================
+  // BLOK BARU: BAGIAN DARI (P361)
+  // ==========================================
+  if (['Pulau', 'Peristiwa lainnya', 'Perang & konflik', 'Bencana lainnya', 'Situs arkeologi', 'Prasasti', 'Artefak'].includes(klaster)) {
+    selectClause += `(SAMPLE(?bagianDariLabel) AS ?bagianDari) `;
+    whereClause += `
+      OPTIONAL { ?site wdt:P361 ?bagianDariItem . ?bagianDariItem rdfs:label ?bagianDariLabel . FILTER(LANG(?bagianDariLabel) = "id") }
+    `;
+  }
   
   // ==========================================
   // BLOK 2: KARYA & LITERATUR (Kolektor dihapus dari sini)
@@ -261,11 +278,16 @@ function getSparqlQuery6(qid) {
       OPTIONAL { ?site wdt:P123 ?penerbitItem . ?penerbitItem rdfs:label ?penerbitLabel . FILTER(LANG(?penerbitLabel) = "id") }
     `;
   }
-  else if (klaster === 'Hidangan') {
-    selectClause += `(GROUP_CONCAT(DISTINCT ?bahanLabel; separator=", ") AS ?bahanList) (GROUP_CONCAT(DISTINCT ?caraLabel; separator=", ") AS ?caraList) `;
+else if (klaster === 'Hidangan') {
+    // Tambahkan (SAMPLE(?wikibooksUrl) AS ?wikibooks)
+    selectClause += `(GROUP_CONCAT(DISTINCT ?bahanLabel; separator=", ") AS ?bahanList) (GROUP_CONCAT(DISTINCT ?caraLabel; separator=", ") AS ?caraList) (SAMPLE(?wikibooksUrl) AS ?wikibooks) `;
     whereClause += `
       OPTIONAL { ?site wdt:P186 ?bahanItem . ?bahanItem rdfs:label ?bahanLabel . FILTER(LANG(?bahanLabel) = "id") }
       OPTIONAL { ?site wdt:P2079 ?caraItem . ?caraItem rdfs:label ?caraLabel . FILTER(LANG(?caraLabel) = "id") }
+      OPTIONAL {
+        ?wikibooksUrl schema:about ?site ;
+                      schema:isPartOf <https://id.wikibooks.org/> .
+      }
     `;
   }
   else if (klaster === 'Bahasa') {
