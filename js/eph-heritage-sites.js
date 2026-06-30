@@ -558,7 +558,7 @@ const labelKamus = {
     bahasaList: 'Bahasa', bentukList: 'Bentuk karya', penulisList: 'Penulis/pencipta',
     subjekList: 'Subjek utama', kolektorList: 'Koleksi dari', pemredList: 'Pimpinan redaksi',
     pendiriList: 'Pendiri', penerbit: 'Penerbit', bahanList: 'Bahan utama',
-    caraList: 'Cara pembuatan', penutur: 'Jumlah penutur', tglWafat: 'Tanggal wafat',
+    caraList: 'Cara pembuatan', penutur: 'Jumlah penutur', tglWafat: 'Wafat',
     pekerjaanList: 'Pekerjaan', pegunungan: 'Bagian dari', korban: 'Korban jiwa',
     agamaList: 'Agama', bagianDari: 'Bagian dari',
   pencipta: 'Pencipta', genreList: 'Genre',
@@ -1055,7 +1055,7 @@ let isBersejarah = false;
     prefixTahun = 'Hari jadi';
   } else if (['Tokoh'].includes(currentNamaKlaster)) {
     prefixLokasi = 'Tempat lahir';
-    prefixTahun = 'Tanggal lahir';
+    prefixTahun = 'Lahir';
   } else if (['Latar karya sastra'].includes(currentNamaKlaster)) {
     prefixLokasi = 'Latar';
     prefixTahun = 'Terbit perdana';
