@@ -50,6 +50,38 @@ OPTIONAL {
 BIND(SUBSTR(STR(?s), 32) AS ?SQ) .
 BIND(SUBSTR(STR(?p), 32) AS ?PQ) .
 SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
+}`,
+
+'apapun': `SELECT DISTINCT ?SQ ?sLabel ?PQ ?pLabel ?LQ ?lLabel ?tM ?tP
+WHERE {
+  {
+    SELECT DISTINCT ?s ?p ?l WHERE {
+      <PLACEHOLDER_KURUNG_BUKA>
+      <PLACEHOLDER_WILAYAH_1>
+      
+      # Syarat Mutlak: Di Indonesia, Punya Koordinat, Punya Gambar
+      ?s wdt:P17 wd:Q252 ;
+         wdt:P625 [] ;
+         wdt:P18 [] ;
+         wdt:P131 ?l .
+         
+      <PLACEHOLDER_HIERARKI_LOKASI>
+      <PLACEHOLDER_KURUNG_TUTUP>
+      <PLACEHOLDER_UNION_EKSTRA>
+    }
+    ORDER BY ?s ?p ?l
+    <PLACEHOLDER_LIMIT_OFFSET>
+  }
+  OPTIONAL {
+    ?s p:<PLACEHOLDER_PROP_TAHUN> ?iS .
+    ?iS psv:<PLACEHOLDER_PROP_TAHUN> ?iN .
+    ?iN wikibase:timeValue ?tM ;
+        wikibase:timePrecision ?tP .
+  }
+  BIND(SUBSTR(STR(?s), 32) AS ?SQ) .
+  BIND(SUBSTR(STR(?p), 32) AS ?PQ) .
+  BIND(SUBSTR(STR(?l), 32) AS ?LQ)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
 }`
 };
 
