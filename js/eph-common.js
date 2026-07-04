@@ -671,8 +671,6 @@ function parseDate(result, keyName) {
   }
 }
 
-
-// Fungsi utama pengendali Navigasi
 function updateNavigationUI(fragment) {
   let navStandar = document.getElementById('nav-standar');
   let navDetail = document.getElementById('nav-detail');
@@ -682,7 +680,7 @@ function updateNavigationUI(fragment) {
   // Deteksi apakah yang sedang dibuka adalah Detail Butir yang valid
   let isDetailView = (fragment !== '' && fragment !== 'hasil' && fragment !== 'about' && PrimaryDataIsLoaded && (fragment in Records));
 
-if (isDetailView) {
+  if (isDetailView) {
     navStandar.style.display = 'none';
     navDetail.style.display = 'flex';
     
@@ -717,19 +715,6 @@ if (isDetailView) {
       btnNext.style.opacity = '1';
       btnNext.style.pointerEvents = 'auto';
     } else {
-      btnNext.removeAttribute('href');
-      btnNext.style.opacity = '0.3';
-      btnNext.style.pointerEvents = 'none';
-    }
-
-    // Konfigurasi Tombol '>>' (Selanjutnya)
-    if (currentIndex !== -1 && currentIndex < currentFilteredRecords.length - 1) {
-      let nextQid = getQidByRecordObj(currentFilteredRecords[currentIndex + 1]);
-      btnNext.href = '#' + nextQid;
-      btnNext.style.opacity = '1';
-      btnNext.style.pointerEvents = 'auto';
-    } else {
-      // Mati jika sudah di urutan paling akhir
       btnNext.removeAttribute('href');
       btnNext.style.opacity = '0.3';
       btnNext.style.pointerEvents = 'none';
