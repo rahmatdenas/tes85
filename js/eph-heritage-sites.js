@@ -102,8 +102,8 @@ populateProvinceTypesData()
          `;
        }
       setTimeout(() => {
+loadingTimeoutToken = setTimeout(() => {
     let loadingDesc = document.getElementById('loading-desc');
-    // Pastikan statusnya masih loading (isFetching = true) saat teks diubah
     if (loadingDesc && isFetching) {
        loadingDesc.innerHTML = `Data yang ditarik terlalu banyak. Harap menunggu, 3-5 menit lagi...`;
     }
