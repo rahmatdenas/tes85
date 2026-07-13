@@ -122,7 +122,7 @@ loadingTimeoutToken = setTimeout(() => {
       if (loadingDesc && isFetching) {
         loadingDesc.innerHTML = `Data yang ditarik mencapai ribuan.<br/>Estimasi proses penarikan data 3-5 menit...`;
       }
-    }, 5000); // Set 5000 (5 detik)
+    }, 7000); // (7 detik)
     // =========================================================
 
     loadPrimaryData();
