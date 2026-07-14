@@ -1086,32 +1086,56 @@ function updateNavigationUI(fragment) {
 }
 
 // ============================================================
-// PINTASAN KEYBOARD (Navigasi Kiri & Kanan)
+// PINTASAN KEYBOARD (Navigasi Kiri & Kanan) - ANTI DOM THRASHING
 // ============================================================
+// Variabel penjaga agar sistem tahu tombol sedang ditahan
+let isArrowLeftHeld = false;
+let isArrowRightHeld = false;
+
+// 1. SAAT TOMBOL DITEKAN (Hanya untuk efek visual)
 window.addEventListener('keydown', function(e) {
-  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
-    return;
-  }
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
 
   if (e.key === 'ArrowLeft') {
+    if (isArrowLeftHeld) return; // Jika sedang ditahan, acuhkan!
+    isArrowLeftHeld = true;
+    
     let btnPrev = document.getElementById('btn-prev');
     if (btnPrev && btnPrev.hasAttribute('href') && btnPrev.style.pointerEvents !== 'none') {
-      window.location.hash = btnPrev.getAttribute('href');
-      
-      // Trik Animasi Keyboard: Nyalakan efek ditekan
-      btnPrev.classList.add('active');
-      setTimeout(() => btnPrev.classList.remove('active'), 150);
+      btnPrev.classList.add('active'); // Nyalakan efek ditekan
     }
   } 
-  
   else if (e.key === 'ArrowRight') {
+    if (isArrowRightHeld) return; // Jika sedang ditahan, acuhkan!
+    isArrowRightHeld = true;
+    
     let btnNext = document.getElementById('btn-next');
     if (btnNext && btnNext.hasAttribute('href') && btnNext.style.pointerEvents !== 'none') {
-      window.location.hash = btnNext.getAttribute('href');
-      
-      // Trik Animasi Keyboard: Nyalakan efek ditekan
-      btnNext.classList.add('active');
-      setTimeout(() => btnNext.classList.remove('active'), 150);
+      btnNext.classList.add('active'); // Nyalakan efek ditekan
+    }
+  }
+});
+
+// 2. SAAT TOMBOL DILEPASKAN (Baru eksekusi perpindahan data)
+window.addEventListener('keyup', function(e) {
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+
+  if (e.key === 'ArrowLeft') {
+    isArrowLeftHeld = false; // Lepas kuncian
+    
+    let btnPrev = document.getElementById('btn-prev');
+    if (btnPrev && btnPrev.hasAttribute('href') && btnPrev.style.pointerEvents !== 'none') {
+      btnPrev.classList.remove('active'); // Matikan efek
+      window.location.hash = btnPrev.getAttribute('href'); // EKSEKUSI PINDAH!
+    }
+  } 
+  else if (e.key === 'ArrowRight') {
+    isArrowRightHeld = false; // Lepas kuncian
+    
+    let btnNext = document.getElementById('btn-next');
+    if (btnNext && btnNext.hasAttribute('href') && btnNext.style.pointerEvents !== 'none') {
+      btnNext.classList.remove('active'); // Matikan efek
+      window.location.hash = btnNext.getAttribute('href'); // EKSEKUSI PINDAH!
     }
   }
 });
